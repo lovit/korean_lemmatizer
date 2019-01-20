@@ -4,6 +4,7 @@ from .lemmatizer import get_lemma_candidates
 from .hangle import compose
 from .hangle import decompose
 from .hangle import is_hangle
+from .trainer import find_rules
 from .utils import installpath
 
 # tagset
