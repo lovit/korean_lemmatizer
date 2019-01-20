@@ -59,14 +59,14 @@ class Lemmatizer:
         # 했 -> [하았]
         lemma_rules = defaultdict(lambda: set())
         for surf, canon in lines:
-            lemma_rules[surf].add(canon)
+            stem, eomi = canon[0], canon[1:]
+            lemma_rules[surf].add((stem, eomi))
         return dict(lemma_rules)
 
     def _to_conjugate_rules(self, lemma_rules):
         # (하, 았) -> [했]
         conjugate_rules = defaultdict(lambda: set())
         for surf, canons in lemma_rules.items():
-            for canon in canons:
-                stem, eomi = canon[0], canon[1:]
+            for stem, eomi in canons:
                 conjugate_rules[(stem, eomi)].add(surf)
         return dict(conjugate_rules)
