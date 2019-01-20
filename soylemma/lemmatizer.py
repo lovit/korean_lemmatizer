@@ -1,12 +1,22 @@
+from collections import defaultdict
+from .utils import installpath
+
+
 class Lemmatizer:
-    def __init__(self, verbs=None, adjectives=None, eomis=None, dictionary_name='demo'):
+    def __init__(self, verbs=None, adjectives=None,
+        eomis=None, lemma_rules=None, dictionary_name='demo'):
 
         verbs, adjectives, eomis = self._check_dictionary(
             verbs, adjectives, eomis, dictionary_name)
 
+        lemma_rules, conjugate_rules = self._check_rules(
+            lemma_rules, dictionary_name)
+
         self.verbs = verbs
         self.adjectives = adjectives
         self.eomis = eomis
+        self.lemma_rules = lemma_rules
+        self.conjugate_rules = conjugate_rules
 
     def _check_dictionary(self, verbs, adjectives, eomis, dictionary_name):
         morphs_set = [
@@ -32,3 +42,31 @@ class Lemmatizer:
         with open(path, encoding='utf-8') as f:
             morphs = {morph.strip() for morph in f}
         return morphs
+
+    def _check_rules(self, lemma_rules, dictionary_name):
+        if lemma_rules is None:
+            lemma_rules = self._load_rules(
+                '{}/soylemma/dictionary/{}/rules.txt'.format(
+                    installpath, dictionary_name))
+        conjugate_rules = self._to_conjugate_rules(lemma_rules)
+        return lemma_rules, conjugate_rules
+
+    def _load_rules(self, path):
+        with open(path, encoding='utf-8') as f:
+            lines = [l.split() for l in f]
+        lines = [l for l in lines if len(l) == 2]
+
+        # 했 -> [하았]
+        lemma_rules = defaultdict(lambda: set())
+        for surf, canon in lines:
+            lemma_rules[surf].add(canon)
+        return dict(lemma_rules)
+
+    def _to_conjugate_rules(self, lemma_rules):
+        # (하, 았) -> [했]
+        conjugate_rules = defaultdict(lambda: set())
+        for surf, canons in lemma_rules.items():
+            for canon in canons:
+                stem, eomi = canon[0], canon[1:]
+                conjugate_rules[(stem, eomi)].add(surf)
+        return dict(conjugate_rules)
