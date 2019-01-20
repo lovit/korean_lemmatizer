@@ -1,5 +1,6 @@
 from collections import defaultdict
 from .utils import installpath
+from .utils import VERB, ADJECTIVE, EOMI
 
 
 class Lemmatizer:
@@ -70,3 +71,39 @@ class Lemmatizer:
             for stem, eomi in canons:
                 conjugate_rules[(stem, eomi)].add(surf)
         return dict(conjugate_rules)
+
+    def analyze(self, word):
+        return analyze_morphology(
+            word, self.verbs, self.adjectives,
+            self.eomis, self.lemma_rules)
+
+    def lemmatize(self, word):
+        morphs = analyze_morphology(
+            word, self.verbs, self.adjectives,
+            self.eomis, self.lemma_rules)
+        lemmas = [(stem[0]+'다', stem[1]) for stem, eomi in morphs]
+        return lemmas
+
+def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules):
+    morphs = []
+    for stem, eomi in get_lemma_candidates(word, lemma_rules):
+        if not (eomi in eomis):
+            continue
+        if stem in adjectives:
+            morphs.append(((stem, ADJECTIVE), (eomi, EOMI)))
+        if stem in verbs:
+            morphs.append(((stem, VERB), (eomi, EOMI)))
+    return morphs
+
+def get_lemma_candidates(word, lemma_rules):
+    max_i = len(word) - 1
+    candidates = []
+    for i, c in enumerate(word):
+        l = word[:i+1]
+        r = word[i+1:]
+        if i < max_i:
+            candidates.append((l, r))
+        l_ = word[:i]
+        for stem, eomi in lemma_rules.get(c, {}):
+            candidates.append((l_ + stem, eomi + r))
+    return candidates
