@@ -1,0 +1,2 @@
+class Lemmatizer:
+    pass
