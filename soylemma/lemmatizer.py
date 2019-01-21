@@ -41,7 +41,7 @@ class Lemmatizer:
 
     def _load_dictionary(self, path):
         with open(path, encoding='utf-8') as f:
-            morphs = {morph.strip() for morph in f}
+            morphs = {morph.split()[0] for morph in f}
         return morphs
 
     def _check_rules(self, lemma_rules, dictionary_name):
