@@ -41,7 +41,7 @@ lemmatizer.lemmatize('한국어') # []
 `conjugate` function returns surfacial form. You should put stem and eomi as arguments. It returns all possible surfacial forms for the given stem and eomi.
 
 ```python
-lemmatizer.conjugate(stem = '차갑', eomi = '우니까')
+lemmatizer.conjugate(stem='차갑', eomi='우니까')
 lemmatizer.conjugate('예쁘', '었던')
 ```
 
