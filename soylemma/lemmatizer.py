@@ -5,7 +5,7 @@ from .utils import VERB, ADJECTIVE, EOMI
 
 class Lemmatizer:
     def __init__(self, verbs=None, adjectives=None,
-        eomis=None, lemma_rules=None, dictionary_name='demo'):
+        eomis=None, lemma_rules=None, dictionary_name='default'):
 
         verbs, adjectives, eomis = self._check_dictionary(
             verbs, adjectives, eomis, dictionary_name)
