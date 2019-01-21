@@ -4,6 +4,17 @@ import re
 hangle_pattern = re.compile('[가-힣]+')
 
 def is_hangle(word):
+    """
+    Arguments
+    ---------
+    word : str
+
+    Returns
+    -------
+    It returns True if all characters in the word are Hangle
+    Else It returns False
+    """
+
     match = hangle_pattern.match(word)
     if not match:
         return False
