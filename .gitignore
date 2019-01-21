@@ -15,4 +15,4 @@ tmp/
 .ipynb_checkpoints/
 
 # data
-data/predicators.txt
+data/*.txt
