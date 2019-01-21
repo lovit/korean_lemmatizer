@@ -144,7 +144,7 @@ class Lemmatizer:
             lemma_rules = self._load_rules(
                 '{}/soylemma/dictionary/{}/rules.txt'.format(
                     installpath, dictionary_name))
-        conjugate_rules = self._to_conjugate_rules(lemma_rules)
+        conjugate_rules = to_conjugate_rules(lemma_rules)
         return lemma_rules, conjugate_rules
 
     def _load_rules(self, path):
@@ -174,14 +174,6 @@ class Lemmatizer:
         for surf, stem, eomi in lines:
             lemma_rules[surf].add((stem, eomi))
         return dict(lemma_rules)
-
-    def _to_conjugate_rules(self, lemma_rules):
-        # (하, 았) -> [했]
-        conjugate_rules = defaultdict(lambda: set())
-        for surf, canons in lemma_rules.items():
-            for stem, eomi in canons:
-                conjugate_rules[(stem, eomi)].add(surf)
-        return dict(conjugate_rules)
 
     def add_words(self, words, tag):
         """
@@ -220,11 +212,14 @@ class Lemmatizer:
                 ...
             }
 
-        It first check input format, and update lemma rules
+        It first check input format, and update (lemma rules, conjugate rules) both
         """
 
         rules = check_rules(rules)
-        self.lemma_rules = update_lemma_rules(self.lemma_rules, rules)
+        self.lemma_rules = update_rules(self.lemma_rules, rules)
+
+        supplements = to_conjugate_rules(rules)
+        self.conjugate_rules = update_rules(self.conjugate_rules, supplements)
 
     def analyze(self, word, debug=False):
         """
@@ -291,6 +286,13 @@ class Lemmatizer:
 
         return get_conjugate_candidates(stem, eomi, self.conjugate_rules)
 
+def to_conjugate_rules(lemma_rules):
+    # (하, 았) -> [했]
+    conjugate_rules = defaultdict(lambda: set())
+    for surf, canons in lemma_rules.items():
+        for stem, eomi in canons:
+            conjugate_rules[(stem, eomi)].add(surf)
+    return dict(conjugate_rules)
 
 def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules, debug=False):
     morphs = []
@@ -363,7 +365,7 @@ def check_rules(rules):
     except Exception as e:
         raise ValueError(str(e))
 
-def update_lemma_rules(base, supplement):
+def update_rules(base, supplement):
     for surface, supple_set in supplement.items():
         base_set = base.get(surface, set())
         base_set.update(supple_set)
