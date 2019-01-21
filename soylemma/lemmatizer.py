@@ -83,6 +83,9 @@ class Lemmatizer:
         lemmas = [(stem[0]+'다', stem[1]) for stem, eomi in morphs]
         return lemmas
 
+    def conjugate(self, stem, eomi):
+        return get_conjugate_candidates(stem, eomi, self.conjugate_rules)
+
 def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules):
     morphs = []
     for stem, eomi in get_lemma_candidates(word, lemma_rules):
@@ -94,7 +97,7 @@ def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules):
             morphs.append(((stem, VERB), (eomi, EOMI)))
     return morphs
 
-def get_lemma_candidates(word, lemma_rules):
+def get_lemma_candidates(word, rules):
     max_i = len(word) - 1
     candidates = []
     for i, c in enumerate(word):
@@ -103,6 +106,18 @@ def get_lemma_candidates(word, lemma_rules):
         if i < max_i:
             candidates.append((l, r))
         l_ = word[:i]
-        for stem, eomi in lemma_rules.get(c, {}):
+        for stem, eomi in rules.get(c, {}):
             candidates.append((l_ + stem, eomi + r))
+    return candidates
+
+def get_conjugate_candidates(stem, eomi, rules):
+    stem_ = stem[:-1]
+    eomi_ = eomi[1:]
+    key = (stem[-1], eomi[0])
+    candidates = ['{}{}{}'.format(stem_, surface, eomi_) for surface in rules.get(key, {})]
+    if len(eomi) >= 2:
+        key = (stem[-1], eomi[:2])
+        eomi_ = eomi[2:]
+        candidates += ['{}{}{}'.format(stem_, surface, eomi_) for surface in rules.get(key, {})]
+    candidates.append(stem + eomi)
     return candidates
