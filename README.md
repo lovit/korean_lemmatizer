@@ -7,6 +7,8 @@
 
 ## Usage
 
+### analyze, lemmatize, conjugate
+
 `analyze` function returns morphemes of the given predicator word
 
 ```python
@@ -48,4 +50,69 @@ lemmatizer.conjugate('예쁘', '었던')
 ```
 ['차가우니까', '차갑우니까']
 ['예뻤던', '예쁘었던']
+```
+
+### update dictionaries and rules
+
+For demonstration, we use dictioanry `demo`.
+
+`어여뻤어` cannot be analyzed because the adjective `어여쁘` does not enrolled in dictionary.
+
+```python
+from soylemma import Lemmatizer
+
+lemmatizer = Lemmatizer(dictionary_name='demo')
+print(lemmatizer.analyze('어여뻤어')) # []
+```
+
+So, we add the word with tag using `add_words` function. Do it again. Then you can see the word `어여뻤어` is analyzed.
+
+```python
+lemmatizer.add_words('어여쁘', 'Adjective')
+lemmatizer.analyze('어여뻤어')
+```
+
+```
+[(('어여쁘', 'Adjective'), ('었어', 'Eomi'))]
+```
+
+However, the word `파랬다` is still not able to be analyzed because the lemmatization rule for surfacial form `랬` does not exist.
+
+```python
+lemmatizer.analyze('파랬다') # []
+```
+
+So, in this time, we update additional lemmatization rules using `add_lemma_rules` function.
+
+```python
+supplements = {
+    '랬': {('랗', '았')}
+}
+
+lemmatizer.add_lemma_rules(supplements)
+```
+
+After that, we can see the word `파랬다` is analyzed, and also conjugation of `파랗 + 았다` is available.
+
+```python
+lemmatizer.analyze('파랬다')
+lemmatizer.conjugate('파랗', '았다')
+```
+
+```
+[(('파랗', 'Adjective'), ('았다', 'Eomi'))]
+['파랬다', '파랗았다']
+```
+
+### debug on
+
+If you wonder which subwords came up as candidates of (stem, eomi), use `debug`.
+
+```python
+lemmatizer.analyze('파랬다', debug=True)
+```
+
+```
+[DEBUG] word: 파랬다 = 파랗 + 았다, conjugation: 랬 = 랗 + 았
+[(('파랗', 'Adjective'), ('았다', 'Eomi'))]
 ```
