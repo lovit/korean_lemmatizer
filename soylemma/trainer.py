@@ -105,11 +105,11 @@ def extract_rule(eojeol, lw, lt, rw, rt):
 
     Usage
     -----
-        $ extract_rule('가까웠는데', '가깝', 'Adjective', '었는데', 'Eomi')
-        > ('까웠', ('깝', '었는'))
+        >>> extract_rule('가까웠는데', '가깝', 'Adjective', '었는데', 'Eomi')
+        $ ('까웠', ('깝', '었는'))
 
-        $ extract_rule('가까워지며', '가까워지', 'Verb', '며', 'Eomi')
-        > None
+        >>> extract_rule('가까워지며', '가까워지', 'Verb', '며', 'Eomi')
+        $ None
     """
 
     if not (lt == 'Adjective' or lt == 'Verb'):
