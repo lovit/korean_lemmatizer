@@ -207,6 +207,22 @@ class Lemmatizer:
             raise ValueError("You put wrong tag '{}'. Acceptable only ['Adjective', 'Verb', 'Eomi']".format(tag))
 
     def add_lemma_rules(self, rules):
+        """
+        Arguments
+        ---------
+        rules : lemma_rules
+            Format example,
+
+            lemma_rules = {
+                '했': {('하', '았')},
+                '끔': {('끈', 'ㅁ'), ('끌', 'ㅁ')}
+                '가우니': {('갑', '니')} # 차가우니까 -> 차갑 + 니까
+                ...
+            }
+
+        It first check input format, and update lemma rules
+        """
+
         rules = check_rules(rules)
         self.lemma_rules = update_lemma_rules(self.lemma_rules, rules)
 
