@@ -183,6 +183,29 @@ class Lemmatizer:
                 conjugate_rules[(stem, eomi)].add(surf)
         return dict(conjugate_rules)
 
+    def add_words(self, words, tag):
+        """
+        Arguments
+        ---------
+        words : collection of str
+            Words
+        tag : str
+            Tag. choice from ['Adjective', 'Verb', 'Eomi']
+        """
+
+        # check words
+        if isinstance(words, str):
+            words = {words}
+
+        if tag == ADJECTIVE:
+            self.adjectives.update(words)
+        elif tag == VERB:
+            self.verbs.update(words)
+        elif tag == EOMI:
+            self.eomis.update(words)
+        else:
+            raise ValueError("You put wrong tag '{}'. Acceptable only ['Adjective', 'Verb', 'Eomi']".format(tag))
+
     def analyze(self, word):
         """
         Arguments
