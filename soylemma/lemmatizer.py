@@ -4,6 +4,52 @@ from .utils import VERB, ADJECTIVE, EOMI
 
 
 class Lemmatizer:
+    """
+    Korean trained lemmatizer class
+
+    Arguments
+    ---------
+    verbs, adjectives, eomis : set of str
+        Dictionary set
+        If they are None, use trained dictionary.
+    lemma_rules : dict
+        Dictionary of lemmatization rules.
+        For example,
+            lemma_rules = {
+                '했': {('하', '았')},
+                '끔': {('끈', 'ㅁ'), ('끌', 'ㅁ')}
+                '가우니': {('갑', '니')} # 차가우니까 -> 차갑 + 니까
+                ...
+            }
+    dictionary_name : str
+        Dictionary name.
+        User can use their dictionary
+        Dictionary file path is soylemma/dictionary/[dictionary_name]/
+        Each dictionary must have four files
+            |-- Adjectives.txt
+            |-- Eomis.txt
+            |-- Verbs.txt
+            |-- rules.txt
+
+    Usage
+    -----
+
+        >>> from soylemma import Lemmatizer
+
+        >>> lemmatizer = Lemmatizer(dictionary_name='demo')
+        >>> lemmatizer = Lemmatizer(dictionary_name='default')
+
+        >>> lemmatizer.lemmatize('차가우니까')
+        $ [('차갑다', 'Adjective')]
+
+        >>> lemmatizer.analyze('차가우니까')
+        $ [(('차갑', 'Adjective'), ('우니까', 'Eomi'))]
+
+        >>> lemmatizer.conjugate('차갑', '우니까')
+        $ ['차가우니까', '차갑우니까']
+
+    """
+
     def __init__(self, verbs=None, adjectives=None,
         eomis=None, lemma_rules=None, dictionary_name='default'):
 
@@ -20,6 +66,20 @@ class Lemmatizer:
         self.conjugate_rules = conjugate_rules
 
     def _check_dictionary(self, verbs, adjectives, eomis, dictionary_name):
+        """
+        Arguments
+        ---------
+        verbs, adjectives, eomis : set of str
+            Dictionary set
+            If they are None, use trained dictionary.
+            They are passed from __init__ function.
+
+        Returns
+        -------
+        verbs, adjectives, eomis : set of str
+            If each set is None, use trained dictionary with loading function.
+        """
+
         morphs_set = [
             # morphs set, name
             (verbs, 'Verbs'),
@@ -40,11 +100,46 @@ class Lemmatizer:
         return verbs, adjectives, eomis
 
     def _load_dictionary(self, path):
+        """
+        Arguments
+        ---------
+        path : str
+            Dictionary file path
+
+        Dictionary file can have information column such as word count
+        For example,
+
+            가 100
+            먹 100
+            시키 50
+
+        However, it load only words, the first column in the file.
+
+        Returns
+        -------
+        morphs : set of str
+            Loaded dictionary
+        """
+
         with open(path, encoding='utf-8') as f:
             morphs = {morph.split()[0] for morph in f}
         return morphs
 
     def _check_rules(self, lemma_rules, dictionary_name):
+        """
+        Arguments
+        ---------
+        lemma_rules : dict
+            Dictionary of lemmatization rules.
+            Passed from __init__ function
+
+        Returns
+        -------
+        lemma_rules : dict
+        conjugate_rules : dict
+            Inverse mapper of lemma_rules
+        """
+
         if lemma_rules is None:
             lemma_rules = self._load_rules(
                 '{}/soylemma/dictionary/{}/rules.txt'.format(
@@ -53,6 +148,23 @@ class Lemmatizer:
         return lemma_rules, conjugate_rules
 
     def _load_rules(self, path):
+        """
+        Arguments
+        ---------
+        path : str
+            File path of rule table
+
+        Rule table must have three column
+        <surfacial form, canonical form of stem, canonical form of eomi>
+        For example,
+
+            했던 하 았던
+
+        Returns
+        -------
+        lemma_rules : dict
+        """
+
         with open(path, encoding='utf-8') as f:
             lines = [l.split() for l in f]
         lines = [(l[0], l[1], '아') if len(l) == 2 else l for l in lines]
@@ -72,11 +184,43 @@ class Lemmatizer:
         return dict(conjugate_rules)
 
     def analyze(self, word):
+        """
+        Arguments
+        ---------
+        word : str
+            A word to perform morphological analysis
+
+        Returns
+        -------
+        morphemes : list of tuple
+
+        Usage
+        -----
+            >>> lemmatizer.analyze('차가우니까')
+            $ [(('차갑', 'Adjective'), ('우니까', 'Eomi'))]
+        """
+
         return analyze_morphology(
             word, self.verbs, self.adjectives,
             self.eomis, self.lemma_rules)
 
     def lemmatize(self, word):
+        """
+        Arguments
+        ---------
+        word : str
+            A word to recover canonical form (lemma)
+
+        Returns
+        -------
+        morphemes : list of tuple
+
+        Usage
+        -----
+            >>> lemmatizer.lemmatize('차가우니까')
+            $ [('차갑다', 'Adjective')]
+        """
+
         morphs = analyze_morphology(
             word, self.verbs, self.adjectives,
             self.eomis, self.lemma_rules)
@@ -84,7 +228,24 @@ class Lemmatizer:
         return lemmas
 
     def conjugate(self, stem, eomi):
+        """
+        Arguments
+        ---------
+        stem : str
+        eomi : str
+
+        Returns
+        -------
+        conjugated form : list of str
+
+        Usage
+        -----
+            >>> lemmatizer.conjugate('차갑', '우니까')
+            $ ['차가우니까', '차갑우니까']
+        """
+
         return get_conjugate_candidates(stem, eomi, self.conjugate_rules)
+
 
 def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules):
     morphs = []
