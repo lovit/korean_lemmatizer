@@ -128,6 +128,14 @@ def extract_rule(eojeol, lw, lt, rw, rt):
         canon = (lw[-1], rw[0])
     else:
         raise ValueError('처리 불가. eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
+
+    # post-processing
+    if len(surface) == 2 and len(canon[0]) == 1 and len(canon[1]) == 1:
+        surf_cho = (decompose(surface[0])[0], decompose(surface[1])[0])
+        canon_cho = (decompose(canon[0][0])[0], decompose(canon[1][0])[0])
+        if not (surf_cho[0] == canon_cho[0] and surf_cho[1] == canon_cho[1]):
+            return
+
     return surface, canon
 
 def extract_rules(eojeol_lr_array):
