@@ -55,12 +55,11 @@ class Lemmatizer:
     def _load_rules(self, path):
         with open(path, encoding='utf-8') as f:
             lines = [l.split() for l in f]
-        lines = [l for l in lines if len(l) == 2]
+        lines = [(l[0], l[1], '아') if len(l) == 2 else l for l in lines]
 
-        # 했 -> [하았]
+        # 했던 -> (하, 았던)
         lemma_rules = defaultdict(lambda: set())
-        for surf, canon in lines:
-            stem, eomi = canon[0], canon[1:]
+        for surf, stem, eomi in lines:
             lemma_rules[surf].add((stem, eomi))
         return dict(lemma_rules)
 
