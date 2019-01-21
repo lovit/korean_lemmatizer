@@ -5,6 +5,10 @@
 1. 입력된 단어를 어간 (stem) 과 어미 (eomi) 으로 분리
 1. 입력된 단어를 원형으로 복원
 
+이 패키지의 구현 원리는 [github.io 블로그][io]에 정리하였습니다.
+
+[io]: https://lovit.github.io/nlp/2019/01/22/trained_kor_lemmatizer/
+
 ## Usage
 
 ### analyze, lemmatize, conjugate
