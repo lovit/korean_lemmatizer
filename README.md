@@ -116,3 +116,23 @@ lemmatizer.analyze('파랬다', debug=True)
 [DEBUG] word: 파랬다 = 파랗 + 았다, conjugation: 랬 = 랗 + 았
 [(('파랗', 'Adjective'), ('았다', 'Eomi'))]
 ```
+
+### lemmatization rule extractor
+
+You can extract lemmatization rule using `extract_rule` function.
+
+```python
+from soylemma import extract_rule
+
+eojeol = '로드무비였다'
+lw = '로드무비이'
+lt = 'Adjective'
+rw = '었다'
+rt = 'Eomi'
+
+extract_rule(eojeol, lw, lt, rw, rt)
+```
+
+```
+('였다', ('이', '었다'))
+```
