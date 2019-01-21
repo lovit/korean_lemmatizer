@@ -124,7 +124,8 @@ def extract_rule(eojeol, lw, lt, rw, rt):
     elif len(lw) + len(rw) > len(eojeol):
         canon = (lw[-1], rw[:2])
     elif len(lw) + len(rw) + 1 == len(eojeol):
-        canon = (lw[-1], eojeol[len(lw)]+rw[0])
+        surface = eojeol[len(lw)-1:len(lw)+2]
+        canon = (lw[-1], rw[0])
     else:
         raise ValueError('처리 불가. eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
     return surface, canon
