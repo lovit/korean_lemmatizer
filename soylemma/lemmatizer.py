@@ -103,11 +103,17 @@ def get_lemma_candidates(word, rules):
     for i, c in enumerate(word):
         l = word[:i+1]
         r = word[i+1:]
+        l_ = word[:i]
         if i < max_i:
             candidates.append((l, r))
-        l_ = word[:i]
+        # 1 syllable conjugation
         for stem, eomi in rules.get(c, {}):
-            candidates.append((l_ + stem, eomi + r))
+            for stem, eomi in rules.get(c, {}):
+                candidates.append((l_ + stem, eomi + r))
+        # 2 or 3 syllables conjugation
+        for conj in {word[i:i+2], word[i:i+3]}:
+            for stem, eomi in rules.get(conj, {}):
+                candidates.append((l_ + stem, eomi + r[1:]))
     return candidates
 
 def get_conjugate_candidates(stem, eomi, rules):
