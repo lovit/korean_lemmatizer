@@ -206,6 +206,10 @@ class Lemmatizer:
         else:
             raise ValueError("You put wrong tag '{}'. Acceptable only ['Adjective', 'Verb', 'Eomi']".format(tag))
 
+    def add_lemma_rules(self, rules):
+        rules = check_rules(rules)
+        self.lemma_rules = update_lemma_rules(self.lemma_rules, rules)
+
     def analyze(self, word, debug=False):
         """
         Arguments
@@ -323,3 +327,29 @@ def get_conjugate_candidates(stem, eomi, rules):
         candidates += ['{}{}{}'.format(stem_, surface, eomi_) for surface in rules.get(key, {})]
     candidates.append(stem + eomi)
     return candidates
+
+def check_rules(rules):
+    def type_error():
+        raise ValueError("Wrong format inserted rules. rules={surface:{(stem, eomi), (stem, eomi), ...}}")
+
+    rules_ = {}
+    try:
+        for surface, canons in rules.items():
+            if isinstance(canons, str) or not isinstance(surface, str):
+                type_error()
+            canons_ = set()
+            for canon in canons:
+                if not (len(canon) == 2 and isinstance(canon[0], str) and isinstance(canon[1], str)):
+                    type_error()
+                canons_.add((canon[0], canon[1]))
+            rules_[surface] = canons_
+        return rules_
+    except Exception as e:
+        raise ValueError(str(e))
+
+def update_lemma_rules(base, supplement):
+    for surface, supple_set in supplement.items():
+        base_set = base.get(surface, set())
+        base_set.update(supple_set)
+        base[surface] = base_set
+    return base
