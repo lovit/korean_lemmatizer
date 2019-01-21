@@ -206,12 +206,14 @@ class Lemmatizer:
         else:
             raise ValueError("You put wrong tag '{}'. Acceptable only ['Adjective', 'Verb', 'Eomi']".format(tag))
 
-    def analyze(self, word):
+    def analyze(self, word, debug=False):
         """
         Arguments
         ---------
         word : str
             A word to perform morphological analysis
+        debug : Boolean
+            If True, verbose on
 
         Returns
         -------
@@ -225,7 +227,7 @@ class Lemmatizer:
 
         return analyze_morphology(
             word, self.verbs, self.adjectives,
-            self.eomis, self.lemma_rules)
+            self.eomis, self.lemma_rules, debug)
 
     def lemmatize(self, word):
         """
@@ -270,9 +272,9 @@ class Lemmatizer:
         return get_conjugate_candidates(stem, eomi, self.conjugate_rules)
 
 
-def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules):
+def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules, debug=False):
     morphs = []
-    for stem, eomi in get_lemma_candidates(word, lemma_rules):
+    for stem, eomi in get_lemma_candidates(word, lemma_rules, debug):
         if not (eomi in eomis):
             continue
         if stem in adjectives:
@@ -281,7 +283,11 @@ def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules):
             morphs.append(((stem, VERB), (eomi, EOMI)))
     return morphs
 
-def get_lemma_candidates(word, rules):
+def get_lemma_candidates(word, rules, debug=False):
+    def debug_on(word, l, stem, eomi, r, conj):
+        args = (word, l+stem, eomi+r, conj, stem, eomi)
+        print('[DEBUG] word: {} = {} + {}, conjugation: {} = {} + {}'.format(*args))
+
     max_i = len(word) - 1
     candidates = []
     for i, c in enumerate(word):
@@ -290,14 +296,20 @@ def get_lemma_candidates(word, rules):
         l_ = word[:i]
         if i < max_i:
             candidates.append((l, r))
+
         # 1 syllable conjugation
         for stem, eomi in rules.get(c, {}):
             for stem, eomi in rules.get(c, {}):
                 candidates.append((l_ + stem, eomi + r))
+                if debug:
+                    debug_on(word, l_, stem, eomi, r, c)
+
         # 2 or 3 syllables conjugation
         for conj in {word[i:i+2], word[i:i+3]}:
             for stem, eomi in rules.get(conj, {}):
                 candidates.append((l_ + stem, eomi + r[1:]))
+                if debug:
+                    debug_on(word, l_, stem, eomi, r[1:], conj)
     return candidates
 
 def get_conjugate_candidates(stem, eomi, rules):
