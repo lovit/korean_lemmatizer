@@ -325,15 +325,15 @@ def analyze_morphology(word, verbs, adjectives, eomis, lemma_rules, debug=False)
     This function checks whether the stem and eomi is known words using dictionaries.
     """
 
-    morphs = []
+    morphs = set()
     for stem, eomi in get_lemma_candidates(word, lemma_rules, debug):
         if not (eomi in eomis):
             continue
         if stem in adjectives:
-            morphs.append(((stem, ADJECTIVE), (eomi, EOMI)))
+            morphs.add(((stem, ADJECTIVE), (eomi, EOMI)))
         if stem in verbs:
-            morphs.append(((stem, VERB), (eomi, EOMI)))
-    return morphs
+            morphs.add(((stem, VERB), (eomi, EOMI)))
+    return list(morphs)
 
 def get_lemma_candidates(word, rules, debug=False):
     """

@@ -1,3 +1,7 @@
+__author__ = 'lovit'
+__name__ = 'soylemma: Korean trained lemmatizer'
+__version__ = '0.1.0'
+
 from .lemmatizer import Lemmatizer
 from .lemmatizer import analyze_morphology
 from .lemmatizer import get_lemma_candidates
