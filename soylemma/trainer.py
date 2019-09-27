@@ -30,7 +30,7 @@ def _right_form(morph):
         print(_right_form('다가)) # True
     """
 
-    if is_moum(morph) and len(morph) > 1 and is_jaum(morph):
+    if is_moum(morph[0]) and len(morph) > 1 and is_jaum(morph[1]):
         return False
     return True
 
@@ -129,11 +129,18 @@ def extract_rule(eojeol, lw, lt, rw, rt):
     else:
         raise ValueError('처리 불가. eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
 
-    # post-processing
+    # post-processing: Ignore exception
     if len(surface) == 2 and len(canon[0]) == 1 and len(canon[1]) == 1:
-        surf_cho = (decompose(surface[0])[0], decompose(surface[1])[0])
-        canon_cho = (decompose(canon[0][0])[0], decompose(canon[1][0])[0])
-        if not (surf_cho[0] == canon_cho[0] and surf_cho[1] == canon_cho[1]):
+        surf_cho_l = decompose(surface[0])[0]
+        surf_cho_r, _, surf_jong_r = decompose(surface[1])
+        canon_cho_l = decompose(canon[0][0])[0]
+        canon_cho_r, canon_jung_r, canon_jong_r = decompose(canon[1][0])
+
+        # 원형과 표현형의 어간 마지막 글자의 초성이 같은지 확인
+        if surf_cho_l != canon_cho_l:
+            return
+        # 원형과 표현형의 어미 첫글자의 초성이 같거나, 어미의 첫글자가 자음일 때 종성이 같은지 확인
+        if not ((surf_cho_r == canon_cho_r) or (canon_jung_r == ' ' and surf_jong_r == canon_cho_r)):
             return
 
     return surface, canon

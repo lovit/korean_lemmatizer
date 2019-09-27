@@ -1,7 +1,9 @@
 import re
 
 
-hangle_pattern = re.compile('[가-힣]+')
+hangle_pattern = re.compile('[가-힣ㄱ-ㅎㅏ-ㅣ]+')
+is_jaum = lambda c: 'ㄱ' <= c <= 'ㅎ'
+is_moum = lambda c: 'ㅏ' <= c <= 'ㅣ'
 
 def is_hangle(word):
     """
@@ -63,6 +65,11 @@ def decompose(input, ensure_input=False):
     if not ensure_input:
         if len(input) > 1 or not is_hangle(input):
             return None
+    if is_jaum(input):
+        return (input, ' ', ' ')
+    if is_moum(input):
+        return (' ', input, ' ')
+
     i = ord(input) - kor_begin
     cho  = i // cho_base
     jung = ( i - cho * cho_base ) // jung_base
