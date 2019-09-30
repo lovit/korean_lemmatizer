@@ -114,20 +114,36 @@ def extract_rule(eojeol, lw, lt, rw, rt):
 
     if not (lt == 'Adjective' or lt == 'Verb'):
         return
-    surface = eojeol[len(lw)-1:len(lw)+1]
-    if decompose(surface[0])[0] != decompose(lw[-1])[0]:
-        return
     if lw + rw == eojeol:
         return
-    if len(lw) + len(rw) == len(eojeol):
-        canon = (lw[-1], rw[0])
-    elif len(lw) + len(rw) > len(eojeol):
-        canon = (lw[-1], rw[:2])
-    elif len(lw) + len(rw) + 1 == len(eojeol):
-        surface = eojeol[len(lw)-1:len(lw)+2]
-        canon = (lw[-1], rw[0])
+
+    surface = eojeol[len(lw)-1:len(lw)+1]
+
+    # extract_rule('어쩔', '어찌하', 'Verb', '알', 'Eomi')
+    # extract_rule('이뤄진', '이루어지', 'Verb', 'ㄴ', 'Eomi')
+    if not surface:
+        def find_begin(eojeol, lw):
+            for i, char in enumerate(eojeol):
+                if char != lw[i]:
+                    return i
+            return i+1
+        b = find_begin(eojeol, lw)
+        if b == len(eojeol):
+            return
+        surface = eojeol[b:]
+        canon = (lw[b:], rw[0])
+    elif decompose(surface[0])[0] != decompose(lw[-1])[0]:
+        return
     else:
-        raise ValueError('처리 불가. eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
+        if len(lw) + len(rw) == len(eojeol):
+            canon = (lw[-1], rw[0])
+        elif len(lw) + len(rw) > len(eojeol):
+            canon = (lw[-1], rw[:2])
+        elif len(lw) + len(rw) + 1 == len(eojeol):
+            surface = eojeol[len(lw)-1:len(lw)+2]
+            canon = (lw[-1], rw[0])
+        else:
+            raise ValueError('처리 불가. eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
 
     # post-processing: Ignore exception
     if len(surface) == 2 and len(canon[0]) == 1 and len(canon[1]) == 1:
@@ -138,10 +154,11 @@ def extract_rule(eojeol, lw, lt, rw, rt):
 
         # 원형과 표현형의 어간 마지막 글자의 초성이 같은지 확인
         if surf_cho_l != canon_cho_l:
-            return
+            raise ValueError('어간 마지막 글자의 초성이 다른 경우 eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
         # 원형과 표현형의 어미 첫글자의 초성이 같거나, 어미의 첫글자가 자음일 때 종성이 같은지 확인
         if not ((surf_cho_r == canon_cho_r) or (canon_jung_r == ' ' and surf_jong_r == canon_cho_r)):
-            return
+            if canon_cho_r != 'ㅇ' and not (surf_cho_r == 'ㅊ' and canon_cho_r == 'ㅈ'):
+                raise ValueError('어미 첫글자의 초성이 다른 경우 eojeol={}, {}/{} + {}/{}'.format(eojeol, lw, lt, rw, rt))
 
     return surface, canon
 
