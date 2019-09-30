@@ -1,8 +1,18 @@
 from collections import defaultdict
+import re
 from .hangle import decompose
+
 
 is_jaum = lambda c: 'ㄱ' <= c <= 'ㅎ'
 is_moum = lambda c: 'ㅏ' <= c <= 'ㅣ'
+root_pattern = re.compile('[^가-힣]+')
+eomi_pattern = re.compile('[^가-힣ㄱ-ㅎㅏ-ㅣ]')
+
+def is_right_root(morpheme):
+    return not root_pattern.findall(morpheme)
+
+def is_right_eomi(morpheme):
+    return not eomi_pattern.findall(morpheme)
 
 def parse(line):
     eojeol, morphtags, count = line.strip().split('\t')
@@ -275,6 +285,8 @@ def train_model_using_sejong_corpus_cleaner(local_repository_path, table_path, s
         if len(morphtags) == 1:
             continue
         (lw, lt), (rw, rt) = morphtags
+        if not is_right_root(lw) or not is_right_eomi(rw):
+            continue
         lemmatizing_count += count
 
         try:
