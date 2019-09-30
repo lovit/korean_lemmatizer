@@ -99,7 +99,7 @@ def extract_rule(eojeol, lw, lt, rw, rt):
 
     Returns
     -------
-    surface, canon : str, str
+    surface, canon : str, (str, str) or None
         If the eojeol is conjugated it return surface & canon tuple
         Else, it return None
 
