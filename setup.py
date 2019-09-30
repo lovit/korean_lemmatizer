@@ -18,7 +18,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={
         'soylemma':[
-            'dictionary/default/*'
+            'dictionary/default/*',
+            'dictionary/demo/*'
         ]
     },
     keywords = [
