@@ -11,6 +11,7 @@ from .hangle import is_hangle
 from .trainer import extract_rule
 from .trainer import extract_rules
 from .trainer import load_word_morpheme_table
+from .trainer import train_model_using_sejong_corpus_cleaner
 from .utils import installpath
 
 # tagset

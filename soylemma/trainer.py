@@ -180,8 +180,8 @@ def extract_rules(eojeol_lr_array):
     rules : dict of set
         Lemmatizing rule
         rules = {
-            '했던': {'하았던'},
-            '인': {'이ㄴ'},
+            '했던': {('하', '았던')},
+            '인': {('이', 'ㄴ')},
             ...
         }
 
@@ -211,3 +211,94 @@ def extract_rules(eojeol_lr_array):
             print(e)
             print(eojeol, ((lw, lt), (rw, rt)), end='\n\n')
     return dict(rules)
+
+def train_model_using_sejong_corpus_cleaner(local_repository_path, table_path, show_exception=False):
+    """
+    Arguments
+    ---------
+    local_repository_path : str
+        Local repository path of https://github.com/loit/sejong_corpus_cleaner.git
+    table_path : str
+        Count table path
+        A row in the table is formed such as ((Eojeol, MorphTags), count)
+    show_exception : Boolean
+        If True, it shows exception when it occurs
+
+    Returns
+    -------
+    adjectives : {str:int}
+        {morpheme:count}
+    verbs : {str:int}
+        {morpheme:count}
+    eomis : {str:int}
+        {morpheme:count}
+    rules : dict of set
+        rules = {
+            '했던': {('하', '았던')},
+            '인': {('이', 'ㄴ')},
+            ...
+        }
+    exceptions : {tuple:int}
+        {(eojeol, lw, lt, rw, rt):count}
+    lemmatizing_count : int
+        Total count of lemmatizing case
+
+    Usage
+    -----
+        >>> local_repository_path = ''
+        >>> table_path = ''
+        >>> parameters = train_model_using_sejong_corpus_cleaner(local_repository_path, table_path)
+        >>> adjectives, verbs, eomis, rules, exceptions, lemmatizing_count = parameters
+    """
+
+    import sys
+    sys.path.append(local_repository_path)
+    try:
+        import sejong_corpus_cleaner
+        from collections import defaultdict
+    except Exception as e:
+        print(e)
+        raise ValueError('Failed to import sejong_corpus_cleaner package. Check local repository path')
+
+    from sejong_corpus_cleaner.loader import load_count_table
+    rows = load_count_table(table_path)
+
+    eomis = defaultdict(int)
+    adjectives = defaultdict(int)
+    verbs = defaultdict(int)
+    rules = defaultdict(lambda: set())
+    exceptions = dict()
+
+    lemmatizing_count = 0
+
+    for (eojeol, morphtags), count in rows:
+        if len(morphtags) == 1:
+            continue
+        (lw, lt), (rw, rt) = morphtags
+        lemmatizing_count += count
+
+        try:
+            rule = extract_rule(eojeol, lw, lt, rw, rt)
+            if rule is None:
+                continue
+            surface, canon = rule
+            rules[surface].add(canon)
+            if lt == 'Verb':
+                verbs[lw] += count
+            elif lt == 'Adjective':
+                adjectives[lw] += count
+            if rt == 'Eomi':
+                eomis[rw] += count
+        except Exception as e:
+            if show_exception:
+                print(e)
+            exceptions[(eojeol, lw, lt, rw, rt)] = count
+
+    adjectives, verbs, eomis = dict(adjectives), dict(verbs), dict(eomis)
+    rules = dict(rules)
+
+    exception_perc = 100 * sum(exceptions.values()) / lemmatizing_count
+    args = (sum(len(v) for v in rules.values()), len(adjectives), len(verbs), len(eomis), len(exceptions), '%.3f' % exception_perc)
+    print('Found {} rules, {} adjectives, {} verbs, {} eomis, with {} ({} %) exceptions'.format(*args))
+
+    return adjectives, verbs, eomis, rules, exceptions, lemmatizing_count
